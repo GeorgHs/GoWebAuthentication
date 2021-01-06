@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/hmac"
 	"fmt"
 	"log"
 
@@ -36,4 +37,8 @@ func comparePassword(password string, hashedPass []byte) error {
 		return fmt.Errorf("Invalid password: %w", err)
 	}
 	return nil
+}
+
+func signMessage(msg []byte) ([]byte, error) {
+	hmac.New()
 }
