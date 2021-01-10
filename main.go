@@ -15,13 +15,23 @@ import (
 
 func main() {
 	msg := "This is totally fun get hands-on and learning it from the ground up."
-
 	password := "Ilovedogs"
 	bs, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		log.Fatalln("Couldn't encrypt password", err)
 	}
 	bs = bs[:16]
+
+	wtr := &bytes.Buffer{}
+	encWriter, err := encryptWriter(wtr, bs)
+
+	_, err = io.WriteString(encWriter, msg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	encrypted := wtr.String()
+	fmt.Println("before base64", encrypted)
 
 	rslt, err := enDecode(bs, msg)
 	if err != nil {
@@ -73,4 +83,22 @@ func enDecode(key []byte, input string) ([]byte, error) {
 	}
 
 	return buff.Bytes(), nil
+}
+
+func encryptWriter(wtr io.Writer, key []byte) (io.Writer, error) {
+	b, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't newCipher %w", err)
+	}
+
+	//Initialization vector
+	iv := make([]byte, aes.BlockSize)
+	_, err = io.ReadFull(rand.Reader, iv) //will put randomly put 16 bytes in
+
+	s := cipher.NewCTR(b, iv)
+
+	return cipher.StreamWriter{
+		S: s,
+		W: wtr,
+	}, nil
 }
