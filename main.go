@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -29,4 +32,28 @@ func decode(encoded string) (string, error) {
 		return "", fmt.Errorf("couldn't decode string %w", err)
 	}
 	return string(s), nil
+}
+
+func enDecode(key []byte, input string) ([]byte, error) {
+	b, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't newCipher %w", err)
+	}
+
+	//Initialization vector
+	iv := make([]byte, aes.BlockSize)
+
+	s := cipher.NewCTR(b, iv)
+
+	buff := &bytes.Buffer{}
+	sw := cipher.StreamWriter{
+		S: s,
+		W: buff,
+	}
+	_, err = sw.Write([]byte(input))
+	if err != nil {
+		return nil, fmt.Errorf("couldn't sw.write to streamwriter %w", err)
+	}
+
+	return buff.Bytes(), nil
 }
