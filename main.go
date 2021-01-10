@@ -32,16 +32,23 @@ func bar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := http.Cookie{
-		Name:  "session",
-		Value: email,
-	}
+	code := getCode(email)
 
 	// "hash / message digest / digest / hash value" | "what we stored"
+	c := http.Cookie{
+		Name:  "session",
+		Value: code + "|" + email,
+	}
 
+	http.SetCookie(w, &c)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func foo(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session")
+	if err != nil {
+		c = &http.Cookie{}
+	}
 	html := `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -50,6 +57,7 @@ func foo(w http.ResponseWriter, r *http.Request) {
 		<title>HMAC Example</title>
 	</head>
 	<body>
+		<p>Cookie value: ` + c.Value + `</p>
 		<form action="/submit" method="post">
 			<input type="email" name="email" />
 			<input type="submit" />
