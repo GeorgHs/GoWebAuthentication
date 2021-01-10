@@ -7,18 +7,32 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
 	msg := "This is totally fun get hands-on and learning it from the ground up."
-	encoded := encode(msg)
-	fmt.Println("ENCODED MSG", encoded)
 
-	s, err := decode(encoded)
+	password := "Ilovedogs"
+	bs, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
-		log.Println(err)
+		log.Fatalln("Couldn't encrypt password", err)
 	}
-	fmt.Println("DECODED MSG", s)
+	bs = bs[:16]
+
+	rslt, err := enDecode(bs, msg)
+	if err != nil {
+		log.Fatal()
+	}
+	fmt.Println("before base64", string(rslt))
+
+	rslt2, err := enDecode(bs, string(rslt))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(string(rslt2))
 }
 
 func encode(msg string) string {
