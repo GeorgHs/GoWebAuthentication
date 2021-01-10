@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
@@ -56,6 +58,7 @@ func enDecode(key []byte, input string) ([]byte, error) {
 
 	//Initialization vector
 	iv := make([]byte, aes.BlockSize)
+	_, err = io.ReadFull(rand.Reader, iv) //will put randomly put 16 bytes in
 
 	s := cipher.NewCTR(b, iv)
 
