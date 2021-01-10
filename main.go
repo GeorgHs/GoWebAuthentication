@@ -7,7 +7,28 @@ import (
 
 func main() {
 	http.HandleFunc("/", foo)
+	http.HandleFunc("/submit", bar)
 	http.ListenAndServe(":8080", nil)
+}
+
+func getCode(msg string) string {}
+
+func bar(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	email := r.FormValue("email")
+	if email == "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	c := http.Cookie{
+		Name:  "session",
+		Value: email,
+	}
 }
 
 func foo(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +40,7 @@ func foo(w http.ResponseWriter, r *http.Request) {
 		<title>HMAC Example</title>
 	</head>
 	<body>
-		<form action="/submit">
+		<form action="/submit" method="post">
 			<input type="email" name="email" />
 			<input type="submit" />
 		</form>
