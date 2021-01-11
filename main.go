@@ -88,11 +88,7 @@ func foo(w http.ResponseWriter, r *http.Request) {
 	//
 	//
 
-	claims := afterVerificationToken.Claims.(*myClaims)
-	fmt.Println(claims.Email)
-	fmt.Println(claims.ExpiresAt)
-
-	isEqual := afterVerificationToken.Valid && err == nil
+	isEqual := err == nil && afterVerificationToken.Valid
 
 	message := "Not logged in"
 	if isEqual {
