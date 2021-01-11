@@ -2,8 +2,6 @@ package main
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -15,11 +13,7 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func getCode(msg string) string {
-	h := hmac.New(sha256.New, []byte("I love thursdays when it rains 8723 inches"))
-	h.Write([]byte(msg))
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
+// implement JWT-function here
 
 func bar(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -33,7 +27,7 @@ func bar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	code := getCode(email)
+	// call JWT here
 
 	// "hash / message digest / digest / hash value" | "what we stored"
 	c := http.Cookie{
