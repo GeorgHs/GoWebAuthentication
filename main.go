@@ -1,11 +1,9 @@
 package main
 
 import (
-	"crypto/hmac"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -17,13 +15,14 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func getJWT(msg string) (string, error) {
-	myKey := "I love thursday when it rains 8723 inches"
+const myKey = "I love thursday when it rains 8723 inches"
 
-	type myClaims struct {
-		jwt.StandardClaims
-		Email string
-	}
+type myClaims struct {
+	jwt.StandardClaims
+	Email string
+}
+
+func getJWT(msg string) (string, error) {
 
 	claims := myClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -74,16 +73,11 @@ func foo(w http.ResponseWriter, r *http.Request) {
 		c = &http.Cookie{}
 	}
 
-	isEqual := true
-	xs := strings.SplitN(c.Value, "|", 2)
-	if len(xs) == 2 {
-		cCode := xs[0]
-		cEmail := xs[1]
+	ss := c.Value
+	afterVerificationToken, err := jwt.ParseWithClaims(ss, &myClaims{}, func(beforeVerificationToken *jwt.Token) (interface{}, error) {
+		return []byte(myKey), nil
+	})
 
-		code := getCode(cEmail)
-		// here is that it's being determined whether that generated Token is ok or not
-		isEqual = hmac.Equal([]byte(cCode), []byte(code))
-	}
 	message := "Not logged in"
 	if isEqual {
 		message = "Logged in"
