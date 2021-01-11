@@ -78,9 +78,24 @@ func foo(w http.ResponseWriter, r *http.Request) {
 		return []byte(myKey), nil
 	})
 
+	// StandardClaims has the ...
+	// Valid() error
+	// ... method which means it implements the Claims interface ...
+	//
+	//
+
+	claims := afterVerificationToken.Claims.(*myClaims)
+	fmt.Println(claims.Email)
+	fmt.Println(claims.ExpiresAt)
+
+	isEqual := afterVerificationToken.Valid && err == nil
+
 	message := "Not logged in"
 	if isEqual {
 		message = "Logged in"
+		claims := afterVerificationToken.Claims.(*myClaims)
+		fmt.Println(claims.Email)
+		fmt.Println(claims.ExpiresAt)
 	}
 
 	html := `<!DOCTYPE html>
