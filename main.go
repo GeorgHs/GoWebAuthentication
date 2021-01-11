@@ -2,9 +2,13 @@ package main
 
 import (
 	"crypto/hmac"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 func main() {
@@ -13,7 +17,28 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-// implement JWT-function here
+func getJWT(msg string) (string, error) {
+	myKey := "I love thursday when it rains 8723 inches"
+
+	type myClaims struct {
+		jwt.StandardClaims
+		Email string
+	}
+
+	claims := myClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
+		},
+		Email: msg,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	ss, err := token.SignedString([]byte(myKey))
+	if err != nil {
+		return "", fmt.Errorf("couldn't SignedString in NewWithClaims %w", err)
+	}
+	return ss, nil
+}
 
 func bar(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -27,12 +52,16 @@ func bar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// call JWT here
+	ss, err := getJWT(email)
+	if err != nil {
+		http.Error(w, "couldn't getJWT", http.StatusInternalServerError)
+		return
+	}
 
 	// "hash / message digest / digest / hash value" | "what we stored"
 	c := http.Cookie{
 		Name:  "session",
-		Value: code + "|" + email,
+		Value: ss,
 	}
 
 	http.SetCookie(w, &c)
