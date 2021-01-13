@@ -3,7 +3,16 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 )
+
+var githubOauthConfig = &oauth2.Config{
+	ClientID:     "get this int from https://github.com/settings/applications/....",
+	ClientSecret: "get this int from https://github.com/settings/applications/....",
+	Endpoint:     github.Endpoint,
+}
 
 func main() {
 	http.HandleFunc("/", index)
@@ -31,5 +40,6 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func startGithubOauth(w http.ResponseWriter, r *http.Request) {
-
+	redirectURL := githubOauthConfig.AuthCodeURL("0000")
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
