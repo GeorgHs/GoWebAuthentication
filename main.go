@@ -2,14 +2,19 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
 
 var githubOauthConfig = &oauth2.Config{
-	ClientID:     "get this int from https://github.com/settings/applications/....",
+
+	ClientID: "get this int from https://github.com/settings/applications/....",
+
 	ClientSecret: "get this int from https://github.com/settings/applications/....",
 	Endpoint:     github.Endpoint,
 }
@@ -59,4 +64,19 @@ func completeGithubOauth(w http.ResponseWriter, r *http.Request) {
 
 	ts := githubOauthConfig.TokenSource(r.Context(), token)
 	client := oauth2.NewClient(r.Context(), ts)
+
+	requestBody := strings.NewReader(`{"query": "{query {viewer {id}}}"}`)
+	resp, err := client.Post("https://api.github.com/graphql", "application/json", requestBody)
+	if err != nil {
+		http.Error(w, "Couldn't get user", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+	bs, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Couldn't read github information", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println(string(bs))
 }
